@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photography Studio for Portraits & Events</title>
+    <script src="tailwind.js"></script>
+    <link rel="icon" type="image/jpeg" href="images/camera-favicon.png"> 
+    <link rel="icon" type="image/png" href="images/camera-favicon.png">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontWeight: {
+                        semibold: '500',
+                        bold: '600',
+                        extrabold: '800',
+                        black: '900'
+                    },
+                    colors: {
+                        accent: 'var(--accent-color)',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* === RESET & CORE === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
+
+        /* === THEME VARIABLES === */
+        :root {
+            --bg-color: #FAFAFA;
+            --bg-secondary: #F0F9FF;
+            --bg-card: #FFFFFF;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --accent-color: #0EA5E9; 
+            --accent-dark: #0284C7;
+            --border-color: #E2E8F0;
+            --nav-bg: rgba(255, 255, 255, 0.85);
+            --drawer-bg: rgba(255, 255, 255, 0.98);
+            --menu-hover-bg: rgba(14, 165, 233, 0.05);
+        }
+
+        /* DARK MODE */
+        body.dark-mode {
+            --bg-color: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-card: #1E293B;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --accent-color: #38BDF8;
+            --accent-dark: #0EA5E9;
+            --border-color: #334155;
+            --nav-bg: rgba(15, 23, 42, 0.85);
+            --drawer-bg: rgba(15, 23, 42, 0.98);
+            --menu-hover-bg: rgba(56, 189, 248, 0.1);
+        }
+
+        /* RTL SUPPORT */
+        [dir="rtl"] { text-align: right; }
+        [dir="rtl"] .ml-auto { margin-right: auto; margin-left: 0; }
+        [dir="rtl"] .mr-auto { margin-left: auto; margin-right: 0; }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 7s ease-in-out infinite; animation-delay: 2s; }
+
+        /* === DYNAMIC ISLAND NAVBAR === */
+        .navbar {
+            position: fixed; 
+            top: 16px; 
+            left: 2%;
+            width: 96%;
+            z-index: 1000;
+            background: var(--nav-bg); 
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-color); 
+            border-radius: 20px;
+            height: 70px; 
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; 
+            align-items: center;
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .navbar.scrolled {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 65px; 
+            border-radius: 0;
+            background: var(--bg-card);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1); 
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+        
+        body.dark-mode .navbar { box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5); }
+        body.dark-mode .navbar.scrolled { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7); border-color: var(--border-color); }
+
+        .nav-link {
+            position: relative; padding: 6px 4px; margin: 0 10px; color: var(--text-main);
+            text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; transition: color 0.3s ease; display: inline-flex;
+            align-items: center; justify-content: center; gap: 4px; cursor: pointer;
+        }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
+            background: var(--accent-color); transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        .nav-link:hover, .nav-link.active { color: var(--accent-color); }
+
+        .dropdown { position: relative; display: flex; align-items: center; height: 100%; }
+        .dropdown-menu {
+            position: absolute; top: 60px; left: 0; transform: translateY(15px);
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100;
+        }
+        .navbar.scrolled .dropdown-menu { top: 50px; }
+        .dropdown-inner {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
+            min-width: 220px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); padding: 8px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        body.dark-mode .dropdown-inner { box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); }
+        .dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown-item {
+            display: block; padding: 12px 16px; border-radius: 8px; color: var(--text-main);
+            text-decoration: none; font-size: 12px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.5px; transition: all 0.2s; text-align: left; white-space: nowrap;
+        }
+        .dropdown-item:hover {
+            background: var(--menu-hover-bg); color: var(--accent-color); padding-left: 24px;
+        }
+        [dir="rtl"] .dropdown-item:hover { padding-left: 16px; padding-right: 24px; }
+
+        /* PILL TOGGLE */
+        .theme-toggle-pill {
+            width: 48px; height: 26px; background: var(--bg-secondary); border-radius: 30px;
+            position: relative; cursor: pointer; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 6px; border: 1px solid var(--border-color);
+        }
+        body.dark-mode .theme-toggle-pill { border-color: var(--border-color); }
+        .theme-toggle-pill i { font-size: 9px; z-index: 1; }
+        .theme-toggle-pill .fa-sun { color: #f59e0b; }
+        .theme-toggle-pill .fa-moon { color: #999; }
+        .theme-toggle-pill .thumb {
+            position: absolute; top: 1px; left: 2px; width: 22px; height: 22px; background: white;
+            border-radius: 50%; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); z-index: 2; border: 1px solid var(--border-color);
+        }
+        body.dark-mode .theme-toggle-pill .thumb {
+            transform: translateX(20px); background: #333; border-color: var(--border-color);
+        }
+
+        /* RTL BUTTON STYLE */
+        .rtl-btn-style {
+            width: 40px; height: 26px; background: var(--bg-secondary); border-radius: 6px;
+            border: 1px solid var(--border-color); display: flex; align-items: center;
+            justify-content: center; font-size: 10px; font-weight: 800; cursor: pointer;
+            color: var(--text-main); transition: all 0.3s ease;
+        }
+        body.dark-mode .rtl-btn-style { border-color: var(--border-color); }
+        .rtl-btn-style:hover { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+
+        /* === BUTTON DESIGN === */
+        .btn {
+            padding: 12px 28px; font-weight: 600; font-size: 12px; text-transform: uppercase;
+            letter-spacing: 1px; transition: all 0.3s ease; display: inline-flex;
+            align-items: center; justify-content: center; cursor: pointer; position: relative;
+            border: 1px solid transparent; border-radius: 100px;
+        }
+        .btn-solid { background: var(--accent-color); color: #FFFFFF !important; }
+        .btn-solid:hover {
+            background: var(--accent-dark); transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(14, 165, 233, 0.3);
+        }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-outline:hover {
+            border-color: var(--accent-color); color: var(--accent-color) !important; transform: translateY(-2px);
+        }
+
+        /* NEW NAVBAR LOGIN BUTTON HOVER EFFECT */
+        .nav-login-btn {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nav-login-btn:hover {
+            background: var(--bg-card);
+            color: var(--accent-color) !important;
+            border: 1px solid var(--accent-color);
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
+        }
+
+        /* MOBILE OVERLAY & HAMBURGER */
+        .drawer-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 1001;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease; backdrop-filter: blur(4px);
+        }
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+        .fullscreen-menu {
+            position: fixed; top: 0; right: 0; width: 100%; max-width: 400px; height: 100dvh;
+            background: var(--drawer-bg); z-index: 1002; display: flex; flex-direction: column;
+            opacity: 0; visibility: hidden; transform: translateX(100%);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); border-left: 1px solid var(--border-color);
+        }
+        [dir="rtl"] .fullscreen-menu {
+            right: auto; left: 0; transform: translateX(-100%); border-left: none;
+            border-right: 1px solid var(--border-color);
+        }
+        .fullscreen-menu.active { opacity: 1; visibility: visible; transform: translateX(0); }
+        .mobile-link {
+            display: block; width: 100%; padding: 16px 32px; font-size: 1.1rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px; color: var(--text-main);
+            text-decoration: none; transition: all 0.3s; border-bottom: 1px solid var(--border-color);
+        }
+        .mobile-link:hover { color: var(--accent-color); padding-left: 40px; background: var(--menu-hover-bg); }
+        [dir="rtl"] .mobile-link:hover { padding-left: 32px; padding-right: 40px; }
+
+        /* FOOTER */
+        footer { background: var(--bg-secondary); border-top: 1px solid var(--border-color); padding-top: 80px; }
+        body.dark-mode footer { border-color: var(--border-color); }
+        footer h4 {
+            color: var(--text-main); font-weight: 600; font-size: 1.1rem; margin-bottom: 24px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        footer a, footer li, footer span {
+            color: var(--text-muted); text-decoration: none; transition: all 0.3s; font-size: 0.95rem; font-weight: 400;
+        }
+        footer a:hover { color: var(--accent-color); }
+        .social-link-circle {
+            width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+            color: var(--text-main); background: transparent;
+        }
+        .social-link-circle:hover {
+            background: var(--accent-color); border-color: var(--accent-color); color: #FFFFFF; transform: translateY(-3px);
+        }
+        .footer-bottom { border-top: 1px solid var(--border-color); padding: 32px 0; margin-top: 60px; }
+    </style>
+</head>
+
+<body class="overflow-x-hidden">
+
+    <!-- NAVBAR PART -->
+    <nav class="navbar" id="main-nav">
+        <div class="w-full max-w-[1600px] mx-auto px-6 md:px-8 flex items-center justify-between">
+            <div class="flex items-center flex-shrink-0">
+                <a href="index.html" class="inline-flex items-center gap-2 text-2xl font-black tracking-tight uppercase"
+                    style="color: var(--text-main) !important; text-decoration: none;">
+                    <i class="fas fa-camera-retro" style="color: var(--accent-color); font-size: 1.4rem;"></i>
+                    LensCraft
+                </a>
+            </div>
+
+            <div class="hidden xl:flex justify-center items-center flex-1 ml-4">
+                <div class="dropdown">
+                    <div class="nav-link active">Home <i class="fas fa-chevron-down text-[10px] opacity-50"></i></div>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-inner">
+                            <a href="index.html" class="dropdown-item" style="color: var(--accent-color);">Home Page 1</a>
+                            <a href="home-2.html" class="dropdown-item">Home Page 2</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="services.html" class="nav-link">Services</a>
+                <a href="pricing.html" class="nav-link">Pricing</a>
+                <a href="blog.html" class="nav-link">Blog</a>
+                <a href="faq.html" class="nav-link">FAQ</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <div class="dropdown">
+                    <div class="nav-link">Dashboard <i class="fas fa-chevron-down text-[10px] opacity-50"></i></div>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-inner">
+                            <a href="user.html" class="dropdown-item">User Dashboard</a>
+                            <a href="admin.html" class="dropdown-item">Admin Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden xl:flex items-center gap-3 shrink-0">
+                <!-- Applied the nav-login-btn class here for the new hover effect -->
+                <a href="login.html" class="btn btn-solid nav-login-btn !w-[80px] !h-[32px] !p-0 !text-[11px]">Login</a>
+                <div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
+                <div id="theme-toggle-desktop" class="theme-toggle-pill" title="Toggle Dark Mode">
+                    <i class="fas fa-sun"></i><i class="fas fa-moon"></i>
+                    <div class="thumb"></div>
+                </div>
+                <button id="rtl-btn" class="rtl-btn-style" title="Toggle LTR/RTL">LTR</button>
+            </div>
+
+            <div class="xl:hidden flex items-center justify-end gap-4 shrink-0">
+                <button id="mobile-btn" class="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--bg-secondary)] border border-[var(--border-color)] text-xl text-[var(--text-main)] transition-colors hover:bg-[var(--accent-color)] hover:text-white hover:border-[var(--accent-color)]">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HAMBURGER MENU PART -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <div class="fullscreen-menu" id="fullscreen-menu">
+        <div class="w-full px-8 py-6 flex justify-between items-center shrink-0 border-b border-[var(--border-color)]">
+            <a href="index.html" class="inline-flex items-center gap-2 text-2xl font-black tracking-tight uppercase"
+                style="color: var(--text-main) !important; text-decoration: none;">
+                <i class="fas fa-camera-retro" style="color: var(--accent-color); font-size: 1.4rem;"></i>
+                LensCraft
+            </a>
+            <button id="close-menu" class="w-10 h-10 rounded-full flex items-center justify-center transition-all text-xl text-[var(--text-main)] hover:bg-[var(--bg-secondary)] hover:text-[var(--accent-color)]">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="flex flex-col w-full overflow-y-auto flex-1 py-4">
+            <a href="index.html" class="mobile-link" style="color: var(--accent-color);">Home Page 1</a>
+            <a href="home-2.html" class="mobile-link">Home Page 2</a>
+            <a href="about.html" class="mobile-link">About</a>
+            <a href="services.html" class="mobile-link">Services</a>
+            <a href="pricing.html" class="mobile-link">Pricing</a>
+            <a href="blog.html" class="mobile-link">Blog</a>
+            <a href="faq.html" class="mobile-link">FAQ</a>
+            <a href="contact.html" class="mobile-link">Contact</a>
+            <div class="px-8 mt-6 mb-2">
+                <span class="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-widest">Portals</span>
+            </div>
+            <a href="user.html" class="mobile-link !text-sm text-[var(--text-muted)]">User Dashboard</a>
+            <a href="admin.html" class="mobile-link !text-sm text-[var(--text-muted)]">Admin Dashboard</a>
+        </div>
+
+        <div class="w-full px-8 py-8 border-t border-[var(--border-color)] flex flex-col gap-6 shrink-0 bg-[var(--bg-secondary)]">
+            <div class="flex justify-between items-center w-full">
+                <div class="flex items-center gap-3">
+                    <span class="text-[var(--text-muted)] font-medium text-[10px] uppercase tracking-widest">Theme</span>
+                    <div id="theme-toggle-mobile" class="theme-toggle-pill"><i class="fas fa-sun"></i><i class="fas fa-moon"></i><div class="thumb"></div></div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-[var(--text-muted)] font-medium text-[10px] uppercase tracking-widest">Dir</span>
+                    <button id="rtl-toggle-mobile" class="rtl-btn-style">LTR</button>
+                </div>
+            </div>
+            <div class="flex gap-4 w-full">
+                <a href="login.html" class="btn btn-solid flex-1 !py-3">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- HERO BANNER -->
+    <section class="relative w-full min-h-[100dvh] pt-24 pb-8 flex items-center justify-center overflow-hidden bg-[var(--bg-color)] border-b border-[var(--border-color)]">
+        <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-[var(--accent-color)] opacity-[0.03] rounded-full blur-[120px] pointer-events-none -translate-y-1/3 translate-x-1/4"></div>
+        <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[var(--accent-dark)] opacity-[0.03] rounded-full blur-[100px] pointer-events-none translate-y-1/4 -translate-x-1/4"></div>
+
+        <div class="max-w-[1440px] mx-auto px-6 lg:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+            <div class="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1 z-20 mt-8 lg:mt-0">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--bg-secondary)] text-[var(--accent-color)] text-[10px] md:text-xs font-bold uppercase tracking-widest mb-4 md:mb-6 border border-[var(--border-color)] shadow-sm">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-color)] opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent-color)]"></span>
+                    </span>
+                    Premium Photography Studio
+                </div>
+
+                <h1 class="text-4xl lg:text-5xl xl:text-[4.2rem] font-black leading-[1.05] mb-4 text-[var(--text-main)] tracking-tight">
+                    Capture Your <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-color)] to-indigo-500 italic pr-4">Perfect Moments</span>
+                    <br>
+                    Forever.
+                </h1>
+
+                <p class="text-[var(--text-muted)] text-sm md:text-base leading-relaxed max-w-md font-medium mb-8">
+                    Specializing in breathtaking portraits, unforgettable events, and professional studio sessions. Let us turn your fleeting memories into timeless art.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                    <a href="services.html" class="btn btn-solid !py-3.5 !px-8 text-sm flex items-center justify-center gap-3 group shadow-lg shadow-[var(--accent-color)]/20">
+                        Book A Session <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                    <a href="pricing.html" class="btn btn-outline !border-[var(--border-color)] hover:!border-[var(--accent-color)] !bg-[var(--bg-card)] !py-3.5 !px-8 text-sm flex items-center justify-center gap-2 shadow-sm">
+                        View Packages
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-6 mt-8 pt-6 border-t border-[var(--border-color)] w-full max-w-sm">
+                    <div>
+                        <h4 class="text-2xl lg:text-3xl font-black text-[var(--text-main)]">10k<span class="text-[var(--accent-color)]">+</span></h4>
+                        <p class="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-bold mt-1">Events Covered</p>
+                    </div>
+                    <div class="w-px h-10 bg-[var(--border-color)]"></div>
+                    <div>
+                        <h4 class="text-2xl lg:text-3xl font-black text-[var(--text-main)]">15<span class="text-[var(--accent-color)]">+</span></h4>
+                        <p class="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-bold mt-1">Years Experience</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 relative h-[40vh] md:h-[50vh] lg:h-[70vh] max-h-[650px] w-full order-1 lg:order-2">
+                <div class="absolute top-1/2 right-[2%] -translate-y-1/2 w-[55%] h-[85%] rounded-[30px] md:rounded-[40px] overflow-hidden shadow-2xl border-[6px] md:border-8 border-[var(--bg-card)] z-20 transition-transform duration-700 hover:scale-[1.02]">
+                    <img src="images/hero-main-photo.jpg" alt="Professional Studio Setup" class="w-full h-full object-cover" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                </div>
+
+                <div class="absolute top-[5%] left-[12%] w-[40%] h-[40%] rounded-[20px] md:rounded-[30px] overflow-hidden shadow-xl border-4 border-[var(--bg-card)] z-10 animate-float">
+                    <img src="images/featured-portrait.jpg" alt="Featured Portrait" class="w-full h-full object-cover">
+                </div>
+
+                <div class="absolute bottom-[5%] left-[8%] w-[45%] h-[45%] rounded-[20px] md:rounded-[30px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.2)] border-4 border-[var(--bg-card)] z-30 animate-float-delayed">
+                    <img src="images/event-photo.jpg" alt="Event Coverage" class="w-full h-full object-cover">
+                    <div class="absolute -bottom-3 -left-3 md:-bottom-4 md:-left-4 bg-[var(--bg-card)] py-1.5 px-3 md:py-2 md:px-4 rounded-full border border-[var(--border-color)] shadow-lg flex items-center gap-2">
+                        <div class="flex text-yellow-400 text-[8px] md:text-[10px]"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        <span class="text-[var(--text-main)] font-bold text-[10px] md:text-xs">Top Rated</span>
+                    </div>
+                </div>
+
+                <div class="absolute top-[35%] left-[35%] w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-[var(--accent-color)] opacity-40 z-0 animate-ping" style="animation-duration: 4s;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NEW CONTENT SECTIONS ADDED HERE -->
+    <main class="w-full bg-[var(--bg-color)]">
+        
+        <!-- Section 1: Portfolio Gallery (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+                <div class="text-center mb-16 max-w-2xl mx-auto">
+                    <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-3">Portfolio</span>
+                    <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight mb-4">Our Recent Captures</h2>
+                    <p class="text-[var(--text-muted)] text-base font-medium">A glimpse into the magical moments we've frozen in time for our amazing clients.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="relative group h-[350px] md:h-[450px] rounded-[30px] overflow-hidden shadow-lg border border-[var(--border-color)]">
+                        <img src="images/gallery-1.jpg" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Wedding Couple">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <h3 class="text-2xl font-black text-white mb-1 tracking-tight">The Big Day</h3>
+                            <p class="text-[var(--accent-color)] font-bold uppercase text-xs tracking-wider">Weddings</p>
+                        </div>
+                    </div>
+                    <div class="relative group h-[350px] md:h-[450px] rounded-[30px] overflow-hidden shadow-lg border border-[var(--border-color)]">
+                        <img src="images/gallery-2.jpg" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Fashion Portrait">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <h3 class="text-2xl font-black text-white mb-1 tracking-tight">Urban Edge</h3>
+                            <p class="text-[var(--accent-color)] font-bold uppercase text-xs tracking-wider">Portraits</p>
+                        </div>
+                    </div>
+                    <div class="relative group h-[350px] md:h-[450px] rounded-[30px] overflow-hidden shadow-lg border border-[var(--border-color)]">
+                        <img src="images/gallery-3.jpg" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Corporate Event">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <h3 class="text-2xl font-black text-white mb-1 tracking-tight">Annual Gala</h3>
+                            <p class="text-[var(--accent-color)] font-bold uppercase text-xs tracking-wider">Events</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-12 text-center">
+                    <a href="services.html" class="btn btn-outline !bg-[var(--bg-card)]">View Full Gallery</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: About Us (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-color)] border-b border-[var(--border-color)] overflow-hidden">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="relative h-[400px] lg:h-[550px] w-full rounded-[40px] overflow-hidden border-8 border-[var(--bg-secondary)] shadow-2xl">
+                    <img src="images/about-photographer.jpg" class="w-full h-full object-cover" alt="Behind the Lens">
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[var(--accent-color)] opacity-20 rounded-full blur-[80px] z-0 pointer-events-none"></div>
+                </div>
+                <div class="flex flex-col items-start text-left">
+                    <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-4 flex items-center gap-2">
+                        <i class="fas fa-camera"></i> Behind The Lens
+                    </span>
+                    <h2 class="text-4xl md:text-5xl lg:text-5xl font-black text-[var(--text-main)] mb-6 leading-[1.1] tracking-tight">
+                        We don't just take photos, we tell your story.
+                    </h2>
+                    <p class="text-[var(--text-muted)] text-lg mb-8 leading-relaxed font-medium">
+                        Founded in 2011, LensCraft was born from a passion for capturing authentic emotion. We believe every smile, every tear, and every candid laugh deserves to be remembered exactly as it felt in the moment.
+                    </p>
+                    <ul class="flex flex-col gap-4 mb-10 w-full">
+                        <li class="flex items-center gap-4 text-[var(--text-main)] font-semibold bg-[var(--bg-secondary)] p-4 rounded-xl border border-[var(--border-color)]">
+                            <i class="fas fa-check-circle text-[var(--accent-color)] text-xl"></i> High-end professional equipment & lighting.
+                        </li>
+                        <li class="flex items-center gap-4 text-[var(--text-main)] font-semibold bg-[var(--bg-secondary)] p-4 rounded-xl border border-[var(--border-color)]">
+                            <i class="fas fa-check-circle text-[var(--accent-color)] text-xl"></i> Fast turnaround times with digital delivery.
+                        </li>
+                    </ul>
+                    <a href="about.html" class="btn btn-solid !px-10 !py-4">Read Our Full Story</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Services Offered (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                    <div class="max-w-xl">
+                        <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-3">What We Do</span>
+                        <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight">Professional Services</h2>
+                    </div>
+                    <a href="services.html" class="btn btn-outline bg-[var(--bg-card)] shrink-0">Explore All Services</a>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-[var(--bg-card)] p-8 md:p-10 rounded-[30px] border border-[var(--border-color)] shadow-sm hover:shadow-xl transition-all duration-300 group transform hover:-translate-y-2">
+                        <div class="w-16 h-16 rounded-2xl bg-[var(--bg-secondary)] text-[var(--accent-color)] flex items-center justify-center text-3xl mb-8 group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors duration-300">
+                            <i class="fas fa-rings-wedding"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-[var(--text-main)] mb-4">Weddings & Events</h3>
+                        <p class="text-[var(--text-muted)] font-medium leading-relaxed mb-8">Comprehensive coverage for your special day. From getting ready to the final dance, we capture every magical moment.</p>
+                        <a href="services.html" class="text-[var(--accent-color)] font-bold uppercase text-xs tracking-wider hover:underline flex items-center gap-2">Learn More <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-8 md:p-10 rounded-[30px] border border-[var(--border-color)] shadow-sm hover:shadow-xl transition-all duration-300 group transform hover:-translate-y-2">
+                        <div class="w-16 h-16 rounded-2xl bg-[var(--bg-secondary)] text-[var(--accent-color)] flex items-center justify-center text-3xl mb-8 group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors duration-300">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-[var(--text-main)] mb-4">Studio Portraits</h3>
+                        <p class="text-[var(--text-muted)] font-medium leading-relaxed mb-8">Professional headshots, family portraits, and creative editorial shoots in our fully equipped lighting studio.</p>
+                        <a href="services.html" class="text-[var(--accent-color)] font-bold uppercase text-xs tracking-wider hover:underline flex items-center gap-2">Learn More <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-8 md:p-10 rounded-[30px] border border-[var(--border-color)] shadow-sm hover:shadow-xl transition-all duration-300 group transform hover:-translate-y-2">
+                        <div class="w-16 h-16 rounded-2xl bg-[var(--bg-secondary)] text-[var(--accent-color)] flex items-center justify-center text-3xl mb-8 group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors duration-300">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-[var(--text-main)] mb-4">Commercial/Product</h3>
+                        <p class="text-[var(--text-muted)] font-medium leading-relaxed mb-8">High-resolution, beautifully styled product photography to elevate your brand, marketing, and e-commerce store.</p>
+                        <a href="services.html" class="text-[var(--accent-color)] font-bold uppercase text-xs tracking-wider hover:underline flex items-center gap-2">Learn More <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Testimonials (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-color)] border-b border-[var(--border-color)]">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+                <div class="text-center mb-16">
+                    <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-3">Client Love</span>
+                    <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight">Stories From the Heart</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 pt-4">
+                    <div class="bg-[var(--bg-card)] p-10 rounded-[30px] border border-[var(--border-color)] shadow-sm relative mt-8 flex flex-col justify-between">
+                        <img src="images/client-1.jpg" class="w-20 h-20 rounded-full object-cover absolute -top-10 left-10 border-4 border-[var(--bg-card)] shadow-lg" alt="Client 1">
+                        <div class="flex text-yellow-400 text-sm mb-6 mt-4 gap-1"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        <p class="text-[var(--text-main)] font-medium text-xl leading-relaxed mb-8 italic">"LensCraft made our wedding day completely stress-free. The photos are absolute perfection, capturing candid moments we didn't even realize were happening!"</p>
+                        <div>
+                            <h4 class="font-bold text-[var(--text-main)] uppercase tracking-wide">Sarah & James</h4>
+                            <p class="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest mt-1">Wedding Clients</p>
+                        </div>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-10 rounded-[30px] border border-[var(--border-color)] shadow-sm relative mt-8 flex flex-col justify-between">
+                        <img src="images/client-2.jpg" class="w-20 h-20 rounded-full object-cover absolute -top-10 left-10 border-4 border-[var(--bg-card)] shadow-lg" alt="Client 2">
+                        <div class="flex text-yellow-400 text-sm mb-6 mt-4 gap-1"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        <p class="text-[var(--text-main)] font-medium text-xl leading-relaxed mb-8 italic">"I needed updated professional headshots for my agency. The studio session was quick, fun, and the lighting they used made me look incredibly sharp."</p>
+                        <div>
+                            <h4 class="font-bold text-[var(--text-main)] uppercase tracking-wide">Michael T.</h4>
+                            <p class="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest mt-1">Corporate Client</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Pricing / Packages (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+                <div class="text-center mb-16 max-w-2xl mx-auto">
+                    <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-3">Clear Pricing</span>
+                    <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight mb-4">Investment Packages</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                    <!-- Standard Tier -->
+                    <div class="bg-[var(--bg-card)] rounded-[32px] p-10 border border-[var(--border-color)] shadow-sm text-center">
+                        <h4 class="font-bold text-[var(--text-main)] text-xl mb-2">Essential Studio</h4>
+                        <div class="text-4xl font-black text-[var(--text-main)] mb-6">$199</div>
+                        <ul class="text-[var(--text-muted)] space-y-4 mb-8 font-medium text-sm text-left mx-auto max-w-[200px]">
+                            <li><i class="fas fa-check text-[var(--accent-color)] mr-2"></i> 1 Hour Session</li>
+                            <li><i class="fas fa-check text-[var(--accent-color)] mr-2"></i> 15 Edited Photos</li>
+                            <li><i class="fas fa-check text-[var(--accent-color)] mr-2"></i> Digital Gallery</li>
+                        </ul>
+                        <a href="pricing.html" class="btn btn-outline w-full">Choose Plan</a>
+                    </div>
+                    <!-- Premium Tier (Highlighted) -->
+                    <div class="bg-[var(--bg-card)] rounded-[32px] p-10 border-2 border-[var(--accent-color)] shadow-xl text-center transform scale-105 relative">
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[var(--accent-color)] text-white text-[10px] font-bold uppercase tracking-widest py-1.5 px-4 rounded-full">Most Popular</div>
+                        <h4 class="font-bold text-[var(--text-main)] text-xl mb-2">Event Premium</h4>
+                        <div class="text-4xl font-black text-[var(--text-main)] mb-6">$899</div>
+                        <ul class="text-[var(--text-muted)] space-y-4 mb-8 font-medium text-sm text-left mx-auto max-w-[200px]">
+                            <li><i class="fas fa-check text-[var(--accent-color)] mr-2"></i> 6 Hours Coverage</li>
+                            <li><i class="fas fa-check text-[var(--accent-color)] mr-2"></i> 200+ Edited Photos</li>
+                            <li><i class="fas fa-check text-[var(--accent-color)] mr-2"></i> USB & Digital Gallery</li>
+                        </ul>
+                        <a href="pricing.html" class="btn btn-solid w-full">Choose Plan</a>
+                    </div>
+                    <!-- Luxury Tier -->
+                    <div class="bg-[var(--bg-card)] rounded-[32px] p-10 border border-[var(--border-color)] shadow-sm text-center">
+                        <h4 class="font-bold text-[var(--text-main)] text-xl mb-2">Wedding Ultimate</h4>
+                        <div class="text-4xl font-black text-[var(--text-main)] mb-6">$2,499</div>
+                        <ul class="text-[var(--text-muted)] space-y-4 mb-8 font-medium text-sm text-left mx-auto max-w-[200px]">
+                            <li><i class="fas fa-check text-[var(--accent-color)] mr-2"></i> Full Day Coverage</li>
+                            <li><i class="fas fa-check text-[var(--accent-color)] mr-2"></i> Second Shooter</li>
+                            <li><i class="fas fa-check text-[var(--accent-color)] mr-2"></i> Premium Photo Book</li>
+                        </ul>
+                        <a href="pricing.html" class="btn btn-outline w-full">Choose Plan</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: Call To Action / Booking (~50 lines) -->
+        <section class="relative w-full py-32 flex items-center justify-center overflow-hidden border-b border-[var(--border-color)]">
+            <div class="absolute inset-0 z-0 bg-black">
+                <img src="images/cta-background.jpg" class="w-full h-full object-cover opacity-40 mix-blend-overlay" alt="Camera Lens Dark Background">
+                <div class="absolute inset-0 bg-gradient-to-r from-[var(--accent-dark)]/80 to-[#0F172A]/90"></div>
+            </div>
+            <div class="relative z-10 max-w-4xl mx-auto px-6 text-center">
+                <i class="fas fa-calendar-check text-5xl text-white mb-6 animate-bounce"></i>
+                <h2 class="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight mb-6 leading-tight">Ready To Create <br> Something Beautiful?</h2>
+                <p class="text-gray-300 text-lg md:text-xl font-medium mb-10 max-w-2xl mx-auto">
+                    Our calendar fills up quickly for weekend events and golden hour sessions. Secure your date today and let's start planning your dream photoshoot.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="contact.html" class="btn !bg-white !text-[var(--text-main)] hover:!bg-gray-100 !py-4 !px-10 text-sm shadow-xl">
+                        Book Your Consultation
+                    </a>
+                    <a href="portfolio.html" class="btn btn-outline !border-white/30 !text-white hover:!border-white hover:!bg-white/10 !py-4 !px-10 text-sm">
+                        View Full Portfolio
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER PART -->
+    <footer>
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-12 xl:gap-16 mb-10 pt-4">
+                <div class="xl:col-span-4 flex flex-col items-center xl:items-start text-center xl:text-left">
+                    <div class="mb-6">
+                        <a href="index.html" class="inline-flex items-center gap-2 text-2xl font-black tracking-tight uppercase"
+                            style="color: var(--text-main) !important; text-decoration: none;">
+                            <i class="fas fa-camera-retro" style="color: var(--accent-color); font-size: 1.4rem;"></i>
+                            LensCraft
+                        </a>
+                    </div>
+                    <p class="opacity-80 leading-relaxed text-sm font-medium mb-8 max-w-sm mx-auto xl:mx-0" style="color: var(--text-muted);">
+                        Dedicated to providing the ultimate photography experience. Whether you are looking for timeless portraits or comprehensive event coverage, we have a lens waiting for you.
+                    </p>
+                    <div class="flex space-x-4 justify-center xl:justify-start">
+                        <a href="#" class="social-link-circle"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link-circle"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link-circle"><i class="fab fa-x-twitter"></i></a>
+                        <a href="#" class="social-link-circle"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+
+                <div class="xl:col-span-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center sm:text-left">
+                        <div>
+                            <h4>Client Portal</h4>
+                            <ul class="space-y-4 inline-block sm:block text-left">
+                                <li><a href="login.html">Client Login</a></li>
+                                <li><a href="user.html">My Dashboard</a></li>
+                                <li><a href="#">View Digital Galleries</a></li>
+                                <li><a href="pricing.html">Photography Packages</a></li>
+                                <li><a href="faq.html">Session FAQ</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>Our Services</h4>
+                            <ul class="space-y-4 inline-block sm:block text-left">
+                                <li><a href="services.html">Wedding & Events</a></li>
+                                <li><a href="services.html">Family Portraits</a></li>
+                                <li><a href="services.html">Corporate Headshots</a></li>
+                                <li><a href="services.html">Product Photography</a></li>
+                                <li><a href="services.html">Studio Sessions</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>Studio Location</h4>
+                            <ul class="space-y-4 text-[var(--text-muted)] text-sm font-medium inline-block sm:block text-left">
+                                <li class="flex items-start gap-4">
+                                    <i class="fas fa-map-marker-alt mt-1 shrink-0" style="color: var(--accent-color);"></i>
+                                    <span>101 Aperture Avenue<br>Creative District, NY</span>
+                                </li>
+                                <li class="flex items-center gap-4">
+                                    <i class="fas fa-phone shrink-0" style="color: var(--accent-color);"></i>
+                                    <a href="tel:+15550198" class="break-all hover:text-[var(--accent-color)]">+1 (555) 800-LENS</a>
+                                </li>
+                                <li class="flex items-center gap-4">
+                                    <i class="fas fa-envelope shrink-0" style="color: var(--accent-color);"></i>
+                                    <a href="contact.html" class="break-all hover:text-[var(--accent-color)]">hello@lenscraft.com</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom flex flex-col md:flex-row justify-between items-center text-xs gap-6 font-semibold uppercase tracking-widest text-center md:text-left">
+                <p style="color: var(--text-muted);">&copy; 2026 LensCraft Photography Studio. All rights reserved.</p>
+                <div class="flex flex-wrap justify-center gap-6 sm:gap-8">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cancellation Policy</a>
+                    <a href="#">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVITY SCRIPT -->
+    <script>
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('main-nav');
+            if (window.scrollY > 20) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        const mobileBtn = document.getElementById('mobile-btn');
+        const fullscreenMenu = document.getElementById('fullscreen-menu');
+        const closeMenu = document.getElementById('close-menu');
+        const drawerOverlay = document.getElementById('drawer-overlay');
+
+        function toggleMenu() {
+            fullscreenMenu.classList.toggle('active');
+            drawerOverlay.classList.toggle('active');
+            document.body.style.overflow = fullscreenMenu.classList.contains('active') ? 'hidden' : 'auto';
+        }
+
+        mobileBtn.onclick = toggleMenu;
+        closeMenu.onclick = toggleMenu;
+        drawerOverlay.onclick = toggleMenu;
+
+        const themeDesktop = document.getElementById('theme-toggle-desktop');
+        const themeMobile = document.getElementById('theme-toggle-mobile');
+        const theme = localStorage.getItem('theme') || 'light';
+
+        function updateThemeUI(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (themeMobile) themeMobile.classList.add('active');
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (themeMobile) themeMobile.classList.remove('active');
+            }
+        }
+
+        updateThemeUI(theme === 'dark');
+
+        function toggleTheme() {
+            const isDark = !document.body.classList.contains('dark-mode');
+            updateThemeUI(isDark);
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        themeDesktop.onclick = toggleTheme;
+        if (themeMobile) themeMobile.onclick = toggleTheme;
+
+        const rtlBtn = document.getElementById('rtl-btn');
+        const rtlMobile = document.getElementById('rtl-toggle-mobile');
+        const dir = localStorage.getItem('dir') || 'ltr';
+
+        function updateRTLUI(currentDir) {
+            const isRTL = currentDir === 'rtl';
+            if (rtlBtn) rtlBtn.innerText = isRTL ? 'RTL' : 'LTR';
+            if (rtlMobile) rtlMobile.innerText = isRTL ? 'RTL' : 'LTR';
+        }
+
+        if (dir === 'rtl') { document.documentElement.dir = 'rtl'; }
+        updateRTLUI(dir);
+
+        function toggleRTL() {
+            const isRTL = document.documentElement.dir === 'rtl';
+            const newDir = isRTL ? 'ltr' : 'rtl';
+            document.documentElement.dir = newDir;
+            localStorage.setItem('dir', newDir);
+            updateRTLUI(newDir);
+        }
+
+        if (rtlBtn) rtlBtn.onclick = toggleRTL;
+        if (rtlMobile) rtlMobile.onclick = toggleRTL;
+    </script>
+</body>
+</html>

@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photography Studio for Portraits & Events | Home v2</title>
+    <script src="tailwind.js"></script>
+    <link rel="icon" type="image/jpeg" href="images/camera-favicon.png"> 
+    <link rel="icon" type="image/png" href="images/camera-favicon.png">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontWeight: {
+                        semibold: '500',
+                        bold: '600',
+                        extrabold: '800',
+                        black: '900'
+                    },
+                    colors: {
+                        accent: 'var(--accent-color)',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* === RESET & CORE === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
+
+        /* === THEME VARIABLES === */
+        :root {
+            --bg-color: #FAFAFA;
+            --bg-secondary: #F0F9FF;
+            --bg-card: #FFFFFF;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --accent-color: #0EA5E9; 
+            --accent-dark: #0284C7;
+            --border-color: #E2E8F0;
+            --nav-bg: rgba(255, 255, 255, 0.85);
+            --drawer-bg: rgba(255, 255, 255, 0.98);
+            --menu-hover-bg: rgba(14, 165, 233, 0.05);
+        }
+
+        /* DARK MODE */
+        body.dark-mode {
+            --bg-color: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-card: #1E293B;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --accent-color: #38BDF8;
+            --accent-dark: #0EA5E9;
+            --border-color: #334155;
+            --nav-bg: rgba(15, 23, 42, 0.85);
+            --drawer-bg: rgba(15, 23, 42, 0.98);
+            --menu-hover-bg: rgba(56, 189, 248, 0.1);
+        }
+
+        /* RTL SUPPORT */
+        [dir="rtl"] { text-align: right; }
+        [dir="rtl"] .ml-auto { margin-right: auto; margin-left: 0; }
+        [dir="rtl"] .mr-auto { margin-left: auto; margin-right: 0; }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 7s ease-in-out infinite; animation-delay: 2s; }
+
+        /* === DYNAMIC ISLAND NAVBAR === */
+        .navbar {
+            position: fixed; 
+            top: 16px; 
+            left: 2%;
+            width: 96%;
+            z-index: 1000;
+            background: var(--nav-bg); 
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-color); 
+            border-radius: 20px;
+            height: 70px; 
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; 
+            align-items: center;
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .navbar.scrolled {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 65px; 
+            border-radius: 0;
+            background: var(--bg-card);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1); 
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+        
+        body.dark-mode .navbar { box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5); }
+        body.dark-mode .navbar.scrolled { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7); border-color: var(--border-color); }
+
+        .nav-link {
+            position: relative; padding: 6px 4px; margin: 0 10px; color: var(--text-main);
+            text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; transition: color 0.3s ease; display: inline-flex;
+            align-items: center; justify-content: center; gap: 4px; cursor: pointer;
+        }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
+            background: var(--accent-color); transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        .nav-link:hover, .nav-link.active { color: var(--accent-color); }
+
+        .dropdown { position: relative; display: flex; align-items: center; height: 100%; }
+        .dropdown-menu {
+            position: absolute; top: 60px; left: 0; transform: translateY(15px);
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100;
+        }
+        .navbar.scrolled .dropdown-menu { top: 50px; }
+        .dropdown-inner {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
+            min-width: 220px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); padding: 8px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        body.dark-mode .dropdown-inner { box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); }
+        .dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown-item {
+            display: block; padding: 12px 16px; border-radius: 8px; color: var(--text-main);
+            text-decoration: none; font-size: 12px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.5px; transition: all 0.2s; text-align: left; white-space: nowrap;
+        }
+        .dropdown-item:hover {
+            background: var(--menu-hover-bg); color: var(--accent-color); padding-left: 24px;
+        }
+        [dir="rtl"] .dropdown-item:hover { padding-left: 16px; padding-right: 24px; }
+
+        /* PILL TOGGLE */
+        .theme-toggle-pill {
+            width: 48px; height: 26px; background: var(--bg-secondary); border-radius: 30px;
+            position: relative; cursor: pointer; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 6px; border: 1px solid var(--border-color);
+        }
+        body.dark-mode .theme-toggle-pill { border-color: var(--border-color); }
+        .theme-toggle-pill i { font-size: 9px; z-index: 1; }
+        .theme-toggle-pill .fa-sun { color: #f59e0b; }
+        .theme-toggle-pill .fa-moon { color: #999; }
+        .theme-toggle-pill .thumb {
+            position: absolute; top: 1px; left: 2px; width: 22px; height: 22px; background: white;
+            border-radius: 50%; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); z-index: 2; border: 1px solid var(--border-color);
+        }
+        body.dark-mode .theme-toggle-pill .thumb {
+            transform: translateX(20px); background: #333; border-color: var(--border-color);
+        }
+
+        /* RTL BUTTON STYLE */
+        .rtl-btn-style {
+            width: 40px; height: 26px; background: var(--bg-secondary); border-radius: 6px;
+            border: 1px solid var(--border-color); display: flex; align-items: center;
+            justify-content: center; font-size: 10px; font-weight: 800; cursor: pointer;
+            color: var(--text-main); transition: all 0.3s ease;
+        }
+        body.dark-mode .rtl-btn-style { border-color: var(--border-color); }
+        .rtl-btn-style:hover { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+
+        /* === BUTTON DESIGN === */
+        .btn {
+            padding: 12px 28px; font-weight: 600; font-size: 12px; text-transform: uppercase;
+            letter-spacing: 1px; transition: all 0.3s ease; display: inline-flex;
+            align-items: center; justify-content: center; cursor: pointer; position: relative;
+            border: 1px solid transparent; border-radius: 100px;
+        }
+        .btn-solid { background: var(--accent-color); color: #FFFFFF !important; }
+        .btn-solid:hover {
+            background: var(--accent-dark); transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(14, 165, 233, 0.3);
+        }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-outline:hover {
+            border-color: var(--accent-color); color: var(--accent-color) !important; transform: translateY(-2px);
+        }
+
+        /* NEW NAVBAR LOGIN BUTTON HOVER EFFECT */
+        .nav-login-btn {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nav-login-btn:hover {
+            background: var(--bg-card);
+            color: var(--accent-color) !important;
+            border: 1px solid var(--accent-color);
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
+        }
+
+        /* MOBILE OVERLAY & HAMBURGER */
+        .drawer-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 1001;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease; backdrop-filter: blur(4px);
+        }
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+        .fullscreen-menu {
+            position: fixed; top: 0; right: 0; width: 100%; max-width: 400px; height: 100dvh;
+            background: var(--drawer-bg); z-index: 1002; display: flex; flex-direction: column;
+            opacity: 0; visibility: hidden; transform: translateX(100%);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); border-left: 1px solid var(--border-color);
+        }
+        [dir="rtl"] .fullscreen-menu {
+            right: auto; left: 0; transform: translateX(-100%); border-left: none;
+            border-right: 1px solid var(--border-color);
+        }
+        .fullscreen-menu.active { opacity: 1; visibility: visible; transform: translateX(0); }
+        .mobile-link {
+            display: block; width: 100%; padding: 16px 32px; font-size: 1.1rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px; color: var(--text-main);
+            text-decoration: none; transition: all 0.3s; border-bottom: 1px solid var(--border-color);
+        }
+        .mobile-link:hover { color: var(--accent-color); padding-left: 40px; background: var(--menu-hover-bg); }
+        [dir="rtl"] .mobile-link:hover { padding-left: 32px; padding-right: 40px; }
+
+        /* FOOTER */
+        footer { background: var(--bg-secondary); border-top: 1px solid var(--border-color); padding-top: 80px; }
+        body.dark-mode footer { border-color: var(--border-color); }
+        footer h4 {
+            color: var(--text-main); font-weight: 600; font-size: 1.1rem; margin-bottom: 24px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        footer a, footer li, footer span {
+            color: var(--text-muted); text-decoration: none; transition: all 0.3s; font-size: 0.95rem; font-weight: 400;
+        }
+        footer a:hover { color: var(--accent-color); }
+        .social-link-circle {
+            width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+            color: var(--text-main); background: transparent;
+        }
+        .social-link-circle:hover {
+            background: var(--accent-color); border-color: var(--accent-color); color: #FFFFFF; transform: translateY(-3px);
+        }
+        .footer-bottom { border-top: 1px solid var(--border-color); padding: 32px 0; margin-top: 60px; }
+    </style>
+</head>
+
+<body class="overflow-x-hidden">
+
+    <!-- NAVBAR PART -->
+    <nav class="navbar" id="main-nav">
+        <div class="w-full max-w-[1600px] mx-auto px-6 md:px-8 flex items-center justify-between">
+            <div class="flex items-center flex-shrink-0">
+                <a href="index.html" class="inline-flex items-center gap-2 text-2xl font-black tracking-tight uppercase"
+                    style="color: var(--text-main) !important; text-decoration: none;">
+                    <i class="fas fa-camera-retro" style="color: var(--accent-color); font-size: 1.4rem;"></i>
+                    LensCraft
+                </a>
+            </div>
+
+            <div class="hidden xl:flex justify-center items-center flex-1 ml-4">
+                <div class="dropdown">
+                    <div class="nav-link active">Home <i class="fas fa-chevron-down text-[10px] opacity-50"></i></div>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-inner">
+                            <a href="index.html" class="dropdown-item">Home Page 1</a>
+                            <a href="home-2.html" class="dropdown-item" style="color: var(--accent-color);">Home Page 2</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="services.html" class="nav-link">Services</a>
+                <a href="pricing.html" class="nav-link">Pricing</a>
+                <a href="blog.html" class="nav-link">Blog</a>
+                <a href="faq.html" class="nav-link">FAQ</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <div class="dropdown">
+                    <div class="nav-link">Dashboard <i class="fas fa-chevron-down text-[10px] opacity-50"></i></div>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-inner">
+                            <a href="user.html" class="dropdown-item">User Dashboard</a>
+                            <a href="admin.html" class="dropdown-item">Admin Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden xl:flex items-center gap-3 shrink-0">
+                <a href="login.html" class="btn btn-solid nav-login-btn !w-[80px] !h-[32px] !p-0 !text-[11px]">Login</a>
+                <div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
+                <div id="theme-toggle-desktop" class="theme-toggle-pill" title="Toggle Dark Mode">
+                    <i class="fas fa-sun"></i><i class="fas fa-moon"></i>
+                    <div class="thumb"></div>
+                </div>
+                <button id="rtl-btn" class="rtl-btn-style" title="Toggle LTR/RTL">LTR</button>
+            </div>
+
+            <div class="xl:hidden flex items-center justify-end gap-4 shrink-0">
+                <button id="mobile-btn" class="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--bg-secondary)] border border-[var(--border-color)] text-xl text-[var(--text-main)] transition-colors hover:bg-[var(--accent-color)] hover:text-white hover:border-[var(--accent-color)]">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HAMBURGER MENU PART -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <div class="fullscreen-menu" id="fullscreen-menu">
+        <div class="w-full px-8 py-6 flex justify-between items-center shrink-0 border-b border-[var(--border-color)]">
+            <a href="index.html" class="inline-flex items-center gap-2 text-2xl font-black tracking-tight uppercase"
+                style="color: var(--text-main) !important; text-decoration: none;">
+                <i class="fas fa-camera-retro" style="color: var(--accent-color); font-size: 1.4rem;"></i>
+                LensCraft
+            </a>
+            <button id="close-menu" class="w-10 h-10 rounded-full flex items-center justify-center transition-all text-xl text-[var(--text-main)] hover:bg-[var(--bg-secondary)] hover:text-[var(--accent-color)]">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="flex flex-col w-full overflow-y-auto flex-1 py-4">
+            <a href="index.html" class="mobile-link">Home Page 1</a>
+            <a href="home-2.html" class="mobile-link" style="color: var(--accent-color);">Home Page 2</a>
+            <a href="about.html" class="mobile-link">About</a>
+            <a href="services.html" class="mobile-link">Services</a>
+            <a href="pricing.html" class="mobile-link">Pricing</a>
+            <a href="blog.html" class="mobile-link">Blog</a>
+            <a href="faq.html" class="mobile-link">FAQ</a>
+            <a href="contact.html" class="mobile-link">Contact</a>
+            <div class="px-8 mt-6 mb-2">
+                <span class="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-widest">Portals</span>
+            </div>
+            <a href="user.html" class="mobile-link !text-sm text-[var(--text-muted)]">User Dashboard</a>
+            <a href="admin.html" class="mobile-link !text-sm text-[var(--text-muted)]">Admin Dashboard</a>
+        </div>
+
+        <div class="w-full px-8 py-8 border-t border-[var(--border-color)] flex flex-col gap-6 shrink-0 bg-[var(--bg-secondary)]">
+            <div class="flex justify-between items-center w-full">
+                <div class="flex items-center gap-3">
+                    <span class="text-[var(--text-muted)] font-medium text-[10px] uppercase tracking-widest">Theme</span>
+                    <div id="theme-toggle-mobile" class="theme-toggle-pill"><i class="fas fa-sun"></i><i class="fas fa-moon"></i><div class="thumb"></div></div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-[var(--text-muted)] font-medium text-[10px] uppercase tracking-widest">Dir</span>
+                    <button id="rtl-toggle-mobile" class="rtl-btn-style">LTR</button>
+                </div>
+            </div>
+            <div class="flex gap-4 w-full">
+                <a href="login.html" class="btn btn-solid flex-1 !py-3">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW HERO BANNER (Home Version 2: Immersive Fullscreen Background) -->
+    <section class="relative w-full h-[100dvh] flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="images/hero-v2-bg.jpg" class="w-full h-full object-cover animate-float" style="animation-duration: 20s;" alt="Stunning Photography Background">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+        </div>
+
+        <div class="relative z-10 w-full max-w-4xl mx-auto px-6 text-center mt-10">
+            <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20 text-xs font-bold uppercase tracking-widest mb-8 shadow-2xl">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-color)] opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent-color)]"></span>
+                </span>
+                Award Winning Studio
+            </div>
+
+            <h1 class="text-5xl md:text-6xl lg:text-[5.5rem] font-black leading-[1.05] mb-6 text-white tracking-tight drop-shadow-2xl">
+                We Freeze Time.<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-300 italic">You Keep The Memories.</span>
+            </h1>
+
+            <p class="text-gray-300 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto font-medium mb-12 drop-shadow-md">
+                Elevating your personal and professional brand through masterful lighting, authentic emotion, and cinematic storytelling.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-5 justify-center items-center">
+                <a href="services.html" class="btn !bg-[var(--accent-color)] !text-white hover:!bg-[var(--accent-dark)] !py-4 !px-10 text-sm shadow-xl shadow-[var(--accent-color)]/30 flex items-center gap-3 w-full sm:w-auto">
+                    View Portfolio <i class="fas fa-camera"></i>
+                </a>
+                <a href="contact.html" class="btn !bg-white/10 backdrop-blur-md !border-white/30 !text-white hover:!bg-white hover:!text-[var(--text-main)] !py-4 !px-10 text-sm shadow-xl w-full sm:w-auto transition-all">
+                    Book Your Date
+                </a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 animate-bounce opacity-70">
+            <span class="text-white text-xs uppercase tracking-widest font-bold">Scroll</span>
+            <i class="fas fa-arrow-down text-white"></i>
+        </div>
+    </section>
+
+    <!-- NEW 6 HOME PAGE SECTIONS START HERE -->
+    <main class="w-full bg-[var(--bg-color)]">
+
+        <!-- SECTION 1: Camera Arsenal & Studio Gear (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                    <div class="max-w-2xl">
+                        <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-3 flex items-center gap-2">
+                            <i class="fas fa-microchip"></i> Cutting-Edge Technology
+                        </span>
+                        <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight">The Camera & Light Arsenal</h2>
+                        <p class="text-[var(--text-muted)] text-base font-medium mt-3">We deploy cinema-grade optics, medium format digital backs, and high-frequency studio strobes to produce unmatched image fidelity.</p>
+                    </div>
+                    <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] shadow-sm text-xs font-bold text-[var(--text-main)]">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Calibrated Bi-Weekly
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-[var(--bg-card)] p-8 rounded-[30px] border border-[var(--border-color)] shadow-sm hover:border-[var(--accent-color)] hover:-translate-y-2 transition-all duration-300 group">
+                        <div class="w-14 h-14 rounded-2xl bg-[var(--bg-secondary)] text-[var(--accent-color)] flex items-center justify-center text-2xl mb-6 group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-color)] bg-[var(--menu-hover-bg)] px-3 py-1 rounded-full">Medium Format</span>
+                        <h3 class="text-xl font-bold text-[var(--text-main)] mt-4 mb-2">Hasselblad X2D 100C</h3>
+                        <p class="text-[var(--text-muted)] text-sm leading-relaxed mb-6 font-medium">100-megapixel BSI sensor capturing 16-bit color depth with 15 stops of dynamic range for monumental canvas resolution.</p>
+                        <div class="pt-4 border-t border-[var(--border-color)] flex items-center justify-between text-xs font-bold text-[var(--text-muted)]">
+                            <span>100 MP RAW</span><span>16-Bit Color</span>
+                        </div>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-8 rounded-[30px] border border-[var(--border-color)] shadow-sm hover:border-[var(--accent-color)] hover:-translate-y-2 transition-all duration-300 group">
+                        <div class="w-14 h-14 rounded-2xl bg-[var(--bg-secondary)] text-[var(--accent-color)] flex items-center justify-center text-2xl mb-6 group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-color)] bg-[var(--menu-hover-bg)] px-3 py-1 rounded-full">Studio Strobes</span>
+                        <h3 class="text-xl font-bold text-[var(--text-main)] mt-4 mb-2">Profoto Pro-11 Packs</h3>
+                        <p class="text-[var(--text-muted)] text-sm leading-relaxed mb-6 font-medium">2400Ws power with freeze-motion flash duration down to 1/80,000s and dead-accurate 5600K color consistency.</p>
+                        <div class="pt-4 border-t border-[var(--border-color)] flex items-center justify-between text-xs font-bold text-[var(--text-muted)]">
+                            <span>1/80,000s Freeze</span><span>2400 Ws Power</span>
+                        </div>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-8 rounded-[30px] border border-[var(--border-color)] shadow-sm hover:border-[var(--accent-color)] hover:-translate-y-2 transition-all duration-300 group">
+                        <div class="w-14 h-14 rounded-2xl bg-[var(--bg-secondary)] text-[var(--accent-color)] flex items-center justify-center text-2xl mb-6 group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors">
+                            <i class="fas fa-ring"></i>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-color)] bg-[var(--menu-hover-bg)] px-3 py-1 rounded-full">Master Glass</span>
+                        <h3 class="text-xl font-bold text-[var(--text-main)] mt-4 mb-2">Leica & Zeiss Primes</h3>
+                        <p class="text-[var(--text-muted)] text-sm leading-relaxed mb-6 font-medium">Ultra-fast f/1.2 & f/1.4 prime optics delivering organic edge-to-edge sharpness and dreamy background falloff.</p>
+                        <div class="pt-4 border-t border-[var(--border-color)] flex items-center justify-between text-xs font-bold text-[var(--text-muted)]">
+                            <span>f/1.2 Aperture</span><span>Zero Distortion</span>
+                        </div>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-8 rounded-[30px] border border-[var(--border-color)] shadow-sm hover:border-[var(--accent-color)] hover:-translate-y-2 transition-all duration-300 group">
+                        <div class="w-14 h-14 rounded-2xl bg-[var(--bg-secondary)] text-[var(--accent-color)] flex items-center justify-center text-2xl mb-6 group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-color)] bg-[var(--menu-hover-bg)] px-3 py-1 rounded-full">Cinema Motion</span>
+                        <h3 class="text-xl font-bold text-[var(--text-main)] mt-4 mb-2">Ronin 4D 8K Rig</h3>
+                        <p class="text-[var(--text-muted)] text-sm leading-relaxed mb-6 font-medium">4-axis active stabilization with LiDAR laser autofocus for butter-smooth cinematic event and commercial capture.</p>
+                        <div class="pt-4 border-t border-[var(--border-color)] flex items-center justify-between text-xs font-bold text-[var(--text-muted)]">
+                            <span>8K ProRes RAW</span><span>LiDAR Tracking</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: RAW vs Master Grade Showcase (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-color)] border-b border-[var(--border-color)] overflow-hidden">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                <div class="lg:col-span-6 flex flex-col items-start text-left">
+                    <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-4 flex items-center gap-2">
+                        <i class="fas fa-sliders-h"></i> Digital Darkroom
+                    </span>
+                    <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] mb-6 leading-tight tracking-tight">
+                        From RAW Data to <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-color)] to-indigo-500 italic">Museum Masterpiece</span>
+                    </h2>
+                    <p class="text-[var(--text-muted)] text-base md:text-lg mb-8 leading-relaxed font-medium">
+                        Shooting is only half the alchemy. Our in-house retouchers perform non-destructive 16-bit color grading, preserving authentic micro-textures, true melanin skin tones, and rich organic tonal transitions.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full mb-8">
+                        <div class="bg-[var(--bg-secondary)] p-5 rounded-2xl border border-[var(--border-color)]">
+                            <i class="fas fa-palette text-[var(--accent-color)] text-xl mb-3 block"></i>
+                            <h4 class="font-bold text-[var(--text-main)] text-sm mb-1">True-Skin LUTs</h4>
+                            <p class="text-[var(--text-muted)] text-xs font-medium">Preserves natural pores & genuine organic complexion.</p>
+                        </div>
+                        <div class="bg-[var(--bg-secondary)] p-5 rounded-2xl border border-[var(--border-color)]">
+                            <i class="fas fa-sun text-[var(--accent-color)] text-xl mb-3 block"></i>
+                            <h4 class="font-bold text-[var(--text-main)] text-sm mb-1">Dodge & Burn</h4>
+                            <p class="text-[var(--text-muted)] text-xs font-medium">Classical painterly three-dimensional sculpting.</p>
+                        </div>
+                        <div class="bg-[var(--bg-secondary)] p-5 rounded-2xl border border-[var(--border-color)]">
+                            <i class="fas fa-cloud-arrow-down text-[var(--accent-color)] text-xl mb-3 block"></i>
+                            <h4 class="font-bold text-[var(--text-main)] text-sm mb-1">Archival Master</h4>
+                            <p class="text-[var(--text-muted)] text-xs font-medium">Delivered in 300 DPI TIFF & web-optimized WebP.</p>
+                        </div>
+                    </div>
+                    <a href="services.html" class="btn btn-solid !px-8 !py-3.5 text-xs">Explore Color Pipeline</a>
+                </div>
+                <div class="lg:col-span-6 relative">
+                    <div class="bg-[var(--bg-card)] p-4 md:p-6 rounded-[36px] border border-[var(--border-color)] shadow-2xl">
+                        <div class="grid grid-cols-2 gap-4 relative rounded-[24px] overflow-hidden">
+                            <div class="relative h-[340px] md:h-[420px] bg-slate-900 rounded-2xl overflow-hidden group">
+                                <div class="absolute top-4 left-4 z-10 bg-black/70 backdrop-blur text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full border border-white/20">
+                                    Flat RAW File
+                                </div>
+                                <div class="w-full h-full bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 flex flex-col items-center justify-center p-6 text-center opacity-90">
+                                    <i class="fas fa-file-image text-5xl text-slate-400 mb-4"></i>
+                                    <p class="text-slate-300 text-xs font-mono">IMG_7820_RAW.DNG<br>Flat Dynamic Profile<br>Neutral Saturation</p>
+                                </div>
+                            </div>
+                            <div class="relative h-[340px] md:h-[420px] bg-slate-950 rounded-2xl overflow-hidden group border-2 border-[var(--accent-color)]">
+                                <div class="absolute top-4 right-4 z-10 bg-[var(--accent-color)] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg">
+                                    Master Grade
+                                </div>
+                                <div class="w-full h-full bg-gradient-to-tr from-sky-950 via-slate-900 to-indigo-900 flex flex-col items-center justify-center p-6 text-center">
+                                    <div class="w-16 h-16 rounded-full bg-[var(--accent-color)]/20 text-[var(--accent-color)] flex items-center justify-center text-3xl mb-4 animate-pulse">
+                                        <i class="fas fa-wand-magic-sparkles"></i>
+                                    </div>
+                                    <h4 class="text-white font-bold text-base mb-1">Editorial Colorist</h4>
+                                    <p class="text-sky-200 text-xs font-medium">Fine Art Contrast • Analog Film Glow • Color Balanced</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Signature Visual Concepts & Themes (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+                <div class="text-center mb-16 max-w-2xl mx-auto">
+                    <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-3">Aesthetic Directions</span>
+                    <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight mb-4">Curated Photoshoot Themes</h2>
+                    <p class="text-[var(--text-muted)] text-base font-medium">Select a tailored artistic visual language designed to evoke deep mood, emotion, and individuality.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-[var(--bg-card)] rounded-[30px] p-8 border border-[var(--border-color)] hover:shadow-xl transition-all duration-300 group hover:-translate-y-2 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-6">
+                                <span class="text-2xl text-[var(--accent-color)]"><i class="fas fa-sun"></i></span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1 bg-[var(--menu-hover-bg)] text-[var(--accent-color)] rounded-full">Ambient Light</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-[var(--text-main)] mb-3 group-hover:text-[var(--accent-color)] transition-colors">Golden Hour Noir</h3>
+                            <p class="text-[var(--text-muted)] text-sm font-medium leading-relaxed mb-6">Cinematic sunset rim lighting paired with soft diffusers for dreamy, emotional couple and editorial sessions.</p>
+                        </div>
+                        <div class="pt-6 border-t border-[var(--border-color)] flex items-center justify-between">
+                            <span class="text-xs font-bold text-[var(--text-muted)]"><i class="fas fa-clock mr-1 text-[var(--accent-color)]"></i> 90 Mins</span>
+                            <a href="contact.html" class="text-xs font-bold text-[var(--accent-color)] hover:underline flex items-center gap-1">Select Theme <i class="fas fa-arrow-right text-[10px]"></i></a>
+                        </div>
+                    </div>
+                    <div class="bg-[var(--bg-card)] rounded-[30px] p-8 border border-[var(--border-color)] hover:shadow-xl transition-all duration-300 group hover:-translate-y-2 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-6">
+                                <span class="text-2xl text-[var(--accent-color)]"><i class="fas fa-moon"></i></span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1 bg-[var(--menu-hover-bg)] text-[var(--accent-color)] rounded-full">Monochrome</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-[var(--text-main)] mb-3 group-hover:text-[var(--accent-color)] transition-colors">Classic Silver Gelatin</h3>
+                            <p class="text-[var(--text-muted)] text-sm font-medium leading-relaxed mb-6">Deep shadow density, analog film grain, and high contrast chiaroscuro for iconic executive and legacy portraits.</p>
+                        </div>
+                        <div class="pt-6 border-t border-[var(--border-color)] flex items-center justify-between">
+                            <span class="text-xs font-bold text-[var(--text-muted)]"><i class="fas fa-clock mr-1 text-[var(--accent-color)]"></i> 60 Mins</span>
+                            <a href="contact.html" class="text-xs font-bold text-[var(--accent-color)] hover:underline flex items-center gap-1">Select Theme <i class="fas fa-arrow-right text-[10px]"></i></a>
+                        </div>
+                    </div>
+                    <div class="bg-[var(--bg-card)] rounded-[30px] p-8 border border-[var(--border-color)] hover:shadow-xl transition-all duration-300 group hover:-translate-y-2 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-6">
+                                <span class="text-2xl text-[var(--accent-color)]"><i class="fas fa-wand-magic"></i></span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1 bg-[var(--menu-hover-bg)] text-[var(--accent-color)] rounded-full">Editorial Color</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-[var(--text-main)] mb-3 group-hover:text-[var(--accent-color)] transition-colors">Cyber Chroma</h3>
+                            <p class="text-[var(--text-muted)] text-sm font-medium leading-relaxed mb-6">Bold color gel strobes, neon reflections, and high-energy modern creative direction for artists, music, and fashion.</p>
+                        </div>
+                        <div class="pt-6 border-t border-[var(--border-color)] flex items-center justify-between">
+                            <span class="text-xs font-bold text-[var(--text-muted)]"><i class="fas fa-clock mr-1 text-[var(--accent-color)]"></i> 120 Mins</span>
+                            <a href="contact.html" class="text-xs font-bold text-[var(--accent-color)] hover:underline flex items-center gap-1">Select Theme <i class="fas fa-arrow-right text-[10px]"></i></a>
+                        </div>
+                    </div>
+                    <div class="bg-[var(--bg-card)] rounded-[30px] p-8 border border-[var(--border-color)] hover:shadow-xl transition-all duration-300 group hover:-translate-y-2 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-6">
+                                <span class="text-2xl text-[var(--accent-color)]"><i class="fas fa-building"></i></span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1 bg-[var(--menu-hover-bg)] text-[var(--accent-color)] rounded-full">Architectural</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-[var(--text-main)] mb-3 group-hover:text-[var(--accent-color)] transition-colors">Spatial Bauhaus</h3>
+                            <p class="text-[var(--text-muted)] text-sm font-medium leading-relaxed mb-6">Geometric framing, brutalist architecture, and clean negative space creating magazine-grade fine art compositions.</p>
+                        </div>
+                        <div class="pt-6 border-t border-[var(--border-color)] flex items-center justify-between">
+                            <span class="text-xs font-bold text-[var(--text-muted)]"><i class="fas fa-clock mr-1 text-[var(--accent-color)]"></i> 90 Mins</span>
+                            <a href="contact.html" class="text-xs font-bold text-[var(--accent-color)] hover:underline flex items-center gap-1">Select Theme <i class="fas fa-arrow-right text-[10px]"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: Live Studio Availability & Pop-Up Dates (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-color)] border-b border-[var(--border-color)]">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                    <div class="max-w-2xl">
+                        <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-3 flex items-center gap-2">
+                            <i class="fas fa-calendar-days"></i> Booking Dispatch
+                        </span>
+                        <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight">Seasonal Pop-Up Sessions</h2>
+                        <p class="text-[var(--text-muted)] text-base font-medium mt-3">Limited availability calendar for curated micro-shoots and exclusive studio set days.</p>
+                    </div>
+                    <a href="contact.html" class="btn btn-outline bg-[var(--bg-card)] shrink-0">Request Private Date</a>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-[var(--bg-secondary)] p-8 rounded-[32px] border border-[var(--border-color)] relative flex flex-col justify-between hover:border-[var(--accent-color)] transition-all">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">3 Spots Left</span>
+                                <span class="text-xs font-bold text-[var(--text-muted)]">Sat, Apr 18</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-[var(--text-main)] mb-2">Spring Loft Natural Light</h3>
+                            <p class="text-[var(--text-muted)] text-sm leading-relaxed mb-6 font-medium">Full access to Studio A's 18-foot floor-to-ceiling skylight windows during peak morning light.</p>
+                            <div class="space-y-2 mb-8 text-xs font-semibold text-[var(--text-main)]">
+                                <div class="flex items-center gap-2"><i class="fas fa-check text-[var(--accent-color)]"></i> 45 Minute Guided Shoot</div>
+                                <div class="flex items-center gap-2"><i class="fas fa-check text-[var(--accent-color)]"></i> 10 Master Retouched Files</div>
+                                <div class="flex items-center gap-2"><i class="fas fa-check text-[var(--accent-color)]"></i> Wardrobe Change Allowed</div>
+                            </div>
+                        </div>
+                        <div class="pt-6 border-t border-[var(--border-color)] flex items-center justify-between">
+                            <div><span class="text-xs text-[var(--text-muted)] block font-medium">Session Fee</span><span class="text-2xl font-black text-[var(--text-main)]">$280</span></div>
+                            <a href="contact.html" class="btn btn-solid !py-2.5 !px-6 text-xs">Claim Spot</a>
+                        </div>
+                    </div>
+                    <div class="bg-[var(--bg-secondary)] p-8 rounded-[32px] border-2 border-[var(--accent-color)] relative flex flex-col justify-between shadow-xl">
+                        <div class="absolute -top-3.5 left-8 bg-[var(--accent-color)] text-white text-[10px] font-black uppercase tracking-widest px-3.5 py-1 rounded-full">Selling Fast</div>
+                        <div>
+                            <div class="flex items-center justify-between mb-4 mt-1">
+                                <span class="px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">1 Spot Left</span>
+                                <span class="text-xs font-bold text-[var(--text-muted)]">Fri, May 02</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-[var(--text-main)] mb-2">Executive Brand Intensive</h3>
+                            <p class="text-[var(--text-muted)] text-sm leading-relaxed mb-6 font-medium">High-impact corporate headshots, speaking press kits, and LinkedIn editorial profiles.</p>
+                            <div class="space-y-2 mb-8 text-xs font-semibold text-[var(--text-main)]">
+                                <div class="flex items-center gap-2"><i class="fas fa-check text-[var(--accent-color)]"></i> On-Site Hair & Makeup Prep</div>
+                                <div class="flex items-center gap-2"><i class="fas fa-check text-[var(--accent-color)]"></i> Same-Day RAW Contact Sheets</div>
+                                <div class="flex items-center gap-2"><i class="fas fa-check text-[var(--accent-color)]"></i> Commercial Usage Rights</div>
+                            </div>
+                        </div>
+                        <div class="pt-6 border-t border-[var(--border-color)] flex items-center justify-between">
+                            <div><span class="text-xs text-[var(--text-muted)] block font-medium">Session Fee</span><span class="text-2xl font-black text-[var(--text-main)]">$450</span></div>
+                            <a href="contact.html" class="btn btn-solid !py-2.5 !px-6 text-xs">Claim Spot</a>
+                        </div>
+                    </div>
+                    <div class="bg-[var(--bg-secondary)] p-8 rounded-[32px] border border-[var(--border-color)] relative flex flex-col justify-between hover:border-[var(--accent-color)] transition-all">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">Waitlist Open</span>
+                                <span class="text-xs font-bold text-[var(--text-muted)]">Sun, May 17</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-[var(--text-main)] mb-2">Twilight Rooftop Golden Hour</h3>
+                            <p class="text-[var(--text-muted)] text-sm leading-relaxed mb-6 font-medium">Panoramic Manhattan skyline backdrop during the blue hour with vintage anamorphic glass.</p>
+                            <div class="space-y-2 mb-8 text-xs font-semibold text-[var(--text-main)]">
+                                <div class="flex items-center gap-2"><i class="fas fa-check text-[var(--accent-color)]"></i> 60 Minute Sunset Window</div>
+                                <div class="flex items-center gap-2"><i class="fas fa-check text-[var(--accent-color)]"></i> 15 Hand-Graded TIFFs</div>
+                                <div class="flex items-center gap-2"><i class="fas fa-check text-[var(--accent-color)]"></i> Drone Establishing Aerials</div>
+                            </div>
+                        </div>
+                        <div class="pt-6 border-t border-[var(--border-color)] flex items-center justify-between">
+                            <div><span class="text-xs text-[var(--text-muted)] block font-medium">Session Fee</span><span class="text-2xl font-black text-[var(--text-main)]">$520</span></div>
+                            <a href="contact.html" class="btn btn-outline bg-[var(--bg-card)] !py-2.5 !px-6 text-xs">Join Waitlist</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: Press, Exhibitions & Global Accolades (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+                <div class="text-center mb-16 max-w-2xl mx-auto">
+                    <span class="text-[var(--accent-color)] text-sm font-bold uppercase tracking-widest block mb-3">Distinction</span>
+                    <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] tracking-tight mb-4">Press & Accolades</h2>
+                    <p class="text-[var(--text-muted)] text-base font-medium">Internationally recognized for technical precision and artistic visual narrative.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
+                    <div class="bg-[var(--bg-card)] p-8 rounded-[28px] border border-[var(--border-color)] text-center hover:border-[var(--accent-color)] transition-all">
+                        <div class="w-12 h-12 rounded-full bg-[var(--menu-hover-bg)] text-[var(--accent-color)] flex items-center justify-center text-xl mx-auto mb-4"><i class="fas fa-trophy"></i></div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-color)]">Winner 2025</span>
+                        <h4 class="font-bold text-[var(--text-main)] text-base mt-2 mb-1">IPA Global Awards</h4>
+                        <p class="text-[var(--text-muted)] text-xs font-medium">1st Place Editorial Portraiture</p>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-8 rounded-[28px] border border-[var(--border-color)] text-center hover:border-[var(--accent-color)] transition-all">
+                        <div class="w-12 h-12 rounded-full bg-[var(--menu-hover-bg)] text-[var(--accent-color)] flex items-center justify-center text-xl mx-auto mb-4"><i class="fas fa-newspaper"></i></div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-color)]">Feature Cover</span>
+                        <h4 class="font-bold text-[var(--text-main)] text-base mt-2 mb-1">Vogue PhotoVogue</h4>
+                        <p class="text-[var(--text-muted)] text-xs font-medium">Curator's Choice Collection</p>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-8 rounded-[28px] border border-[var(--border-color)] text-center hover:border-[var(--accent-color)] transition-all">
+                        <div class="w-12 h-12 rounded-full bg-[var(--menu-hover-bg)] text-[var(--accent-color)] flex items-center justify-center text-xl mx-auto mb-4"><i class="fas fa-medal"></i></div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-color)]">Official Selection</span>
+                        <h4 class="font-bold text-[var(--text-main)] text-base mt-2 mb-1">Sony Alpha Awards</h4>
+                        <p class="text-[var(--text-muted)] text-xs font-medium">Fine Art Motion Category</p>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-8 rounded-[28px] border border-[var(--border-color)] text-center hover:border-[var(--accent-color)] transition-all">
+                        <div class="w-12 h-12 rounded-full bg-[var(--menu-hover-bg)] text-[var(--accent-color)] flex items-center justify-center text-xl mx-auto mb-4"><i class="fas fa-landmark"></i></div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-color)]">Solo Exhibition</span>
+                        <h4 class="font-bold text-[var(--text-main)] text-base mt-2 mb-1">Chelsea Gallery NY</h4>
+                        <p class="text-[var(--text-muted)] text-xs font-medium">"Fleeting Light" Retrospective</p>
+                    </div>
+                </div>
+                <div class="bg-[var(--bg-card)] p-8 md:p-12 rounded-[36px] border border-[var(--border-color)] shadow-sm max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
+                    <div class="w-20 h-20 rounded-full bg-[var(--accent-color)]/10 text-[var(--accent-color)] flex items-center justify-center text-3xl shrink-0">
+                        <i class="fas fa-quote-left"></i>
+                    </div>
+                    <div>
+                        <p class="text-[var(--text-main)] text-lg md:text-xl font-medium italic leading-relaxed mb-4">
+                            "LensCraft transforms raw visual reality into painterly classical poetry with an uncanny, instinctive mastery of natural and strobe illumination."
+                        </p>
+                        <div class="flex items-center justify-center md:justify-start gap-4">
+                            <span class="font-bold text-[var(--text-main)] text-sm uppercase tracking-wider">Aperture Visual Journal</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-[var(--accent-color)]"></span>
+                            <span class="text-xs font-bold text-[var(--accent-color)]">Issue 142 Review</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: VIP Creator Pass & Shoot Configurator (~50 lines) -->
+        <section class="py-24 bg-[var(--bg-color)] border-b border-[var(--border-color)] relative overflow-hidden">
+            <div class="max-w-[1440px] mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-6 flex flex-col items-start text-left">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--menu-hover-bg)] text-[var(--accent-color)] text-xs font-bold uppercase tracking-widest mb-6 border border-[var(--accent-color)]">
+                        <i class="fas fa-crown"></i> Exclusive Studio Access
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-black text-[var(--text-main)] mb-6 leading-tight tracking-tight">
+                        LensCraft Black Card <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-color)] to-indigo-500 italic">Creator Membership</span>
+                    </h2>
+                    <p class="text-[var(--text-muted)] text-base md:text-lg mb-8 leading-relaxed font-medium">
+                        Designed for creative directors, brands, agencies, and high-volume influencers needing recurring studio access, dedicated colorists, and instant gear checkout.
+                    </p>
+                    <div class="space-y-4 w-full mb-8">
+                        <div class="flex items-center gap-4 p-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                            <i class="fas fa-key text-[var(--accent-color)] text-lg"></i>
+                            <span class="text-sm font-bold text-[var(--text-main)]">24/7 Keyless Smart Studio Access to Loft A & Studio B</span>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                            <i class="fas fa-server text-[var(--accent-color)] text-lg"></i>
+                            <span class="text-sm font-bold text-[var(--text-main)]">Unlimited 10Gbps Fiber Cloud RAW Storage & Cold Archive</span>
+                        </div>
+                    </div>
+                    <a href="contact.html" class="btn btn-solid !py-4 !px-8 text-xs flex items-center gap-3 shadow-lg shadow-[var(--accent-color)]/25">
+                        Apply For Black Card Pass <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="lg:col-span-6">
+                    <div class="bg-[var(--bg-secondary)] p-8 md:p-10 rounded-[36px] border border-[var(--border-color)] shadow-xl relative">
+                        <div class="flex items-center justify-between mb-8 pb-4 border-b border-[var(--border-color)]">
+                            <div><h3 class="text-xl font-black text-[var(--text-main)]">Custom Shoot Configurator</h3><p class="text-xs text-[var(--text-muted)] font-medium">Instant estimate for bespoke productions</p></div>
+                            <span class="w-10 h-10 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] flex items-center justify-center text-[var(--accent-color)]"><i class="fas fa-calculator"></i></span>
+                        </div>
+                        <div class="space-y-5">
+                            <div>
+                                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-2">1. Select Production Type</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="py-2.5 px-3 rounded-xl bg-[var(--bg-card)] border-2 border-[var(--accent-color)] text-center text-xs font-bold text-[var(--accent-color)] cursor-pointer">Editorial</div>
+                                    <div class="py-2.5 px-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center text-xs font-bold text-[var(--text-main)] cursor-pointer hover:border-[var(--accent-color)]">Commercial</div>
+                                    <div class="py-2.5 px-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center text-xs font-bold text-[var(--text-main)] cursor-pointer hover:border-[var(--accent-color)]">Portrait</div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-2">2. Production Duration</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="py-2.5 px-3 rounded-xl bg-[var(--bg-card)] border-2 border-[var(--accent-color)] text-center text-xs font-bold text-[var(--accent-color)] cursor-pointer">Half Day (4 Hrs)</div>
+                                    <div class="py-2.5 px-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center text-xs font-bold text-[var(--text-main)] cursor-pointer hover:border-[var(--accent-color)]">Full Day (8 Hrs)</div>
+                                </div>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] flex items-center justify-between mt-6">
+                                <div><span class="text-[10px] uppercase font-bold text-[var(--text-muted)] block">Estimated Production</span><span class="text-2xl font-black text-[var(--text-main)]">$1,250 <span class="text-xs font-semibold text-[var(--text-muted)]">/ session</span></span></div>
+                                <a href="contact.html" class="btn btn-solid !py-2.5 !px-5 text-xs">Lock In Date</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER PART -->
+    <footer>
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-12 xl:gap-16 mb-10 pt-4">
+                <div class="xl:col-span-4 flex flex-col items-center xl:items-start text-center xl:text-left">
+                    <div class="mb-6">
+                        <a href="index.html" class="inline-flex items-center gap-3 text-2xl font-bold tracking-widest uppercase"
+                            style="color: var(--text-main) !important; text-decoration: none;">
+                            <i class="fas fa-camera-retro" style="color: var(--accent-color); font-size: 1.4rem;"></i>
+                            LensCraft
+                        </a>
+                    </div>
+                    <p class="opacity-80 leading-relaxed text-sm font-medium mb-8 max-w-sm mx-auto xl:mx-0" style="color: var(--text-muted);">
+                        Dedicated to providing the ultimate photography experience. Whether you are looking for timeless portraits or comprehensive event coverage, we have a lens waiting for you.
+                    </p>
+                    <div class="flex space-x-4 justify-center xl:justify-start">
+                        <a href="#" class="social-link-circle"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link-circle"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link-circle"><i class="fab fa-x-twitter"></i></a>
+                        <a href="#" class="social-link-circle"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+
+                <div class="xl:col-span-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center sm:text-left">
+                        <div>
+                            <h4>Client Portal</h4>
+                            <ul class="space-y-4 inline-block sm:block text-left">
+                                <li><a href="login.html">Client Login</a></li>
+                                <li><a href="user.html">My Dashboard</a></li>
+                                <li><a href="#">View Digital Galleries</a></li>
+                                <li><a href="pricing.html">Photography Packages</a></li>
+                                <li><a href="faq.html">Session FAQ</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>Our Services</h4>
+                            <ul class="space-y-4 inline-block sm:block text-left">
+                                <li><a href="services.html">Wedding & Events</a></li>
+                                <li><a href="services.html">Family Portraits</a></li>
+                                <li><a href="services.html">Corporate Headshots</a></li>
+                                <li><a href="services.html">Product Photography</a></li>
+                                <li><a href="services.html">Studio Sessions</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>Studio Location</h4>
+                            <ul class="space-y-4 text-[var(--text-muted)] text-sm font-medium inline-block sm:block text-left">
+                                <li class="flex items-start gap-4">
+                                    <i class="fas fa-map-marker-alt mt-1 shrink-0" style="color: var(--accent-color);"></i>
+                                    <span>101 Aperture Avenue<br>Creative District, NY</span>
+                                </li>
+                                <li class="flex items-center gap-4">
+                                    <i class="fas fa-phone shrink-0" style="color: var(--accent-color);"></i>
+                                    <a href="tel:+15550198" class="break-all hover:text-[var(--accent-color)]">+1 (555) 800-LENS</a>
+                                </li>
+                                <li class="flex items-center gap-4">
+                                    <i class="fas fa-envelope shrink-0" style="color: var(--accent-color);"></i>
+                                    <a href="contact.html" class="break-all hover:text-[var(--accent-color)]">hello@lenscraft.com</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom flex flex-col md:flex-row justify-between items-center text-xs gap-6 font-semibold uppercase tracking-widest text-center md:text-left">
+                <p style="color: var(--text-muted);">&copy; 2026 LensCraft Photography Studio. All rights reserved.</p>
+                <div class="flex flex-wrap justify-center gap-6 sm:gap-8">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cancellation Policy</a>
+                    <a href="#">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVITY SCRIPT -->
+    <script>
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('main-nav');
+            if (window.scrollY > 20) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        const mobileBtn = document.getElementById('mobile-btn');
+        const fullscreenMenu = document.getElementById('fullscreen-menu');
+        const closeMenu = document.getElementById('close-menu');
+        const drawerOverlay = document.getElementById('drawer-overlay');
+
+        function toggleMenu() {
+            fullscreenMenu.classList.toggle('active');
+            drawerOverlay.classList.toggle('active');
+            document.body.style.overflow = fullscreenMenu.classList.contains('active') ? 'hidden' : 'auto';
+        }
+
+        mobileBtn.onclick = toggleMenu;
+        closeMenu.onclick = toggleMenu;
+        drawerOverlay.onclick = toggleMenu;
+
+        const themeDesktop = document.getElementById('theme-toggle-desktop');
+        const themeMobile = document.getElementById('theme-toggle-mobile');
+        const theme = localStorage.getItem('theme') || 'light';
+
+        function updateThemeUI(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (themeMobile) themeMobile.classList.add('active');
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (themeMobile) themeMobile.classList.remove('active');
+            }
+        }
+
+        updateThemeUI(theme === 'dark');
+
+        function toggleTheme() {
+            const isDark = !document.body.classList.contains('dark-mode');
+            updateThemeUI(isDark);
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        themeDesktop.onclick = toggleTheme;
+        if (themeMobile) themeMobile.onclick = toggleTheme;
+
+        const rtlBtn = document.getElementById('rtl-btn');
+        const rtlMobile = document.getElementById('rtl-toggle-mobile');
+        const dir = localStorage.getItem('dir') || 'ltr';
+
+        function updateRTLUI(currentDir) {
+            const isRTL = currentDir === 'rtl';
+            if (rtlBtn) rtlBtn.innerText = isRTL ? 'RTL' : 'LTR';
+            if (rtlMobile) rtlMobile.innerText = isRTL ? 'RTL' : 'LTR';
+        }
+
+        if (dir === 'rtl') { document.documentElement.dir = 'rtl'; }
+        updateRTLUI(dir);
+
+        function toggleRTL() {
+            const isRTL = document.documentElement.dir === 'rtl';
+            const newDir = isRTL ? 'ltr' : 'rtl';
+            document.documentElement.dir = newDir;
+            localStorage.setItem('dir', newDir);
+            updateRTLUI(newDir);
+        }
+
+        if (rtlBtn) rtlBtn.onclick = toggleRTL;
+        if (rtlMobile) rtlMobile.onclick = toggleRTL;
+    </script>
+</body>
+</html>
